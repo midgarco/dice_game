@@ -1,4 +1,4 @@
-package models
+package player
 
 // Player ...
 type Player struct {

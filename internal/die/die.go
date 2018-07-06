@@ -1,4 +1,4 @@
-package models
+package die
 
 import (
 	"math/rand"

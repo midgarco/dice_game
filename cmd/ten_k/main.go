@@ -1,36 +1,34 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
-	"sync"
+	"os"
+	"strconv"
 	"time"
 
-	"github.com/midgarco/dice_game/internal/models"
+	"github.com/midgarco/dice_game/internal/game"
+	"github.com/midgarco/dice_game/internal/player"
 )
 
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	d1 := models.NewSixSidedDie()
-	d2 := models.NewSixSidedDie()
-	d3 := models.NewSixSidedDie()
+	game := &game.Game{}
 
-	wg := sync.WaitGroup{}
-	wg.Add(3)
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("How many players? ")
+	playerCount, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
 
-	go func() {
-		defer wg.Done()
-		fmt.Println(d1.Roll())
-	}()
-	go func() {
-		defer wg.Done()
-		fmt.Println(d2.Roll())
-	}()
-	go func() {
-		defer wg.Done()
-		fmt.Println(d3.Roll())
-	}()
+	numPlayers, err := strconv.Atoi(playerCount)
+	if err != nil {
+		panic(err)
+	}
+	game.Players = make([]*player.Player, numPlayers)
 
-	wg.Wait()
+	fmt.Println(game)
 }
