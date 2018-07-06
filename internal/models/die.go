@@ -16,6 +16,5 @@ func NewSixSidedDie() *Die {
 
 // Roll the die
 func (d Die) Roll() int {
-	r := rand.New(rand.NewSource(int64(d.Sides)))
-	return r.Intn(d.Sides) + 1
+	return rand.Intn(d.Sides) + 1
 }
