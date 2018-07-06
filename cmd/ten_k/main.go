@@ -18,29 +18,32 @@ func main() {
 	game := &game.Game{}
 
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("How many players? ")
+	fmt.Print("How many players? \n")
 	var playerCount string
-	if scanner.Scan() {
-		playerCount = scanner.Text()
-	}
-	if scanner.Err() != nil {
-		panic(scanner.Err())
-	}
+	// if scanner.Scan() {
+	// 	playerCount = scanner.Text()
+	// }
+	// if scanner.Err() != nil {
+	// 	panic(scanner.Err())
+	// }
+
+	_ = scanner
+	playerCount = "2"
 
 	numPlayers, err := strconv.Atoi(playerCount)
 	if err != nil {
 		panic(err)
 	}
+	if numPlayers < 2 {
+		fmt.Println("Game requires at least 2 players")
+		os.Exit(1)
+	}
 	game.Players = make([]*player.Player, numPlayers)
 
-	for i, p := range game.Players {
-		fmt.Printf("Player %d Name: ", i+1)
-		p = &player.Player{}
-		if scanner.Scan() {
-			p.Name = scanner.Text()
-		}
-		game.Players[i] = p
+	for i := range game.Players {
+		game.Players[i] = player.NewPlayer(i + 1)
 	}
 
-	fmt.Println(game)
+	// start the game
+	game.Start()
 }
