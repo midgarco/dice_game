@@ -2,5 +2,5 @@ package models
 
 // Game ...
 type Game struct {
-	Players []*Player
+	Players []*Player `json:"players"`
 }

@@ -6,7 +6,7 @@ import (
 
 // Die model
 type Die struct {
-	Sides int
+	Sides int `json:"side"`
 }
 
 // NewSixSidedDie quickly creates a six sided die
