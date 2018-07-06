@@ -6,7 +6,8 @@ import (
 
 // Die model
 type Die struct {
-	Sides int `json:"side"`
+	Sides int `json:"sides"`
+	Value int `json:"value"`
 }
 
 // NewSixSidedDie quickly creates a six sided die
@@ -15,6 +16,6 @@ func NewSixSidedDie() *Die {
 }
 
 // Roll the die
-func (d Die) Roll() int {
-	return rand.Intn(d.Sides) + 1
+func (d *Die) Roll() {
+	d.Value = rand.Intn(d.Sides) + 1
 }

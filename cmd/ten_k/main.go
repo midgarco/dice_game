@@ -17,11 +17,14 @@ func main() {
 
 	game := &game.Game{}
 
-	reader := bufio.NewReader(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("How many players? ")
-	playerCount, err := reader.ReadString('\n')
-	if err != nil {
-		panic(err)
+	var playerCount string
+	if scanner.Scan() {
+		playerCount = scanner.Text()
+	}
+	if scanner.Err() != nil {
+		panic(scanner.Err())
 	}
 
 	numPlayers, err := strconv.Atoi(playerCount)
@@ -29,6 +32,15 @@ func main() {
 		panic(err)
 	}
 	game.Players = make([]*player.Player, numPlayers)
+
+	for i, p := range game.Players {
+		fmt.Printf("Player %d Name: ", i+1)
+		p = &player.Player{}
+		if scanner.Scan() {
+			p.Name = scanner.Text()
+		}
+		game.Players[i] = p
+	}
 
 	fmt.Println(game)
 }
