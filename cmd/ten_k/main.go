@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jeffdupont/dice_game/internal/models"
+	"github.com/midgarco/dice_game/internal/models"
 )
 
 func main() {
