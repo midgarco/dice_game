@@ -23,6 +23,7 @@ func (d *Die) Roll() {
 
 // Tally the score
 func Tally(dice []*Die) int {
+	total := 0
 	present := map[int]int{}
 
 	for d := range dice {
@@ -32,10 +33,19 @@ func Tally(dice []*Die) int {
 		present[dice[d].Value]++
 	}
 
+	// 5 of a kind
+	if len(dice) == 5 && len(present) == 1 {
+		if dice[0].Value == 1 {
+			total += 10000
+		} else {
+			total += dice[0].Value * 1000
+		}
+	}
+
+	fmt.Printf("\nnumber of values: %d ", len(present))
 	for d, count := range present {
 		fmt.Printf("\n%d: %d ", d, count)
 	}
 
-	total := 0
 	return total
 }
