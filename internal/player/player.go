@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 
 	"github.com/midgarco/dice_game/internal/die"
 )
@@ -37,6 +38,7 @@ func NewPlayer(num int) *Player {
 
 	_ = scanner
 	player.Name = string(letterBytes[rand.Int63()%int64(len(letterBytes))])
+
 	return player
 }
 
@@ -52,18 +54,31 @@ func (t Turn) Roll(dice []*die.Die) []*die.Die {
 		dice[d].Roll()
 		result = append(result, dice[d])
 	}
+	sort.Slice(result, func(a, b int) bool {
+		return result[a].Value < result[b].Value
+	})
 	return result
 }
 
 // Bank the current score
-func (t *Turn) Bank(dice []*die.Die, saves ...int) {
-	for d := range dice {
-		t.RemainingDie--
-		t.Banked += dice[d].Value
+func (t *Turn) Bank(dice []*die.Die) error {
+	if len(dice) > t.RemainingDie {
+		return fmt.Errorf("to many dice relative to how many we expected. got %d, expected %d", len(dice), t.RemainingDie)
 	}
+
+	t.RemainingDie -= len(dice)
+	t.Banked += die.Tally(dice)
+
 	if t.RemainingDie == 0 {
 		t.RemainingDie = 5
 	}
+	return nil
+}
+
+// Save the banked score and reset the turn
+func (p *Player) Save() {
+	p.Score += p.Turn.Banked
+	p.Turn.Reset()
 }
 
 // Reset the turn

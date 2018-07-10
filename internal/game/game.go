@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/midgarco/dice_game/internal/die"
@@ -27,11 +27,12 @@ func (g *Game) Start() {
 	g.NextTurn()
 }
 
+// NextTurn ...
 func (g *Game) NextTurn() {
 	g.CurrentPlayer, g.Players = g.Players[0], g.Players[1:]
 
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Player %s, it's your turn: [R]oll\n", g.CurrentPlayer.Name)
+	fmt.Printf("Player %s [%d], it's your turn: [R]oll\n", g.CurrentPlayer.Name, g.CurrentPlayer.Score)
 	if scanner.Scan() {
 		if strings.ToLower(scanner.Text()) != "r" {
 			g.EndTurn()
@@ -40,21 +41,59 @@ func (g *Game) NextTurn() {
 	}
 
 	g.CurrentPlayer.Turn.New()
-	diceRoll := g.CurrentPlayer.Turn.Roll(g.Dice)
+	for {
+		diceRoll := g.CurrentPlayer.Turn.Roll(g.Dice[:g.CurrentPlayer.Turn.RemainingDie])
+		for i := range diceRoll {
+			fmt.Printf("[%d]:%d ", i, diceRoll[i].Value)
+		}
+		runningTally := die.Tally(diceRoll)
+		fmt.Printf(">> %d\n", runningTally)
 
-	sort.Slice(diceRoll, func(a, b int) bool {
-		return diceRoll[a].Value < diceRoll[b].Value
-	})
+		if runningTally == 0 {
+			break // turn is over!
+		}
 
-	for i := range diceRoll {
-		fmt.Printf("%d ", diceRoll[i].Value)
+		g.Bank(diceRoll)
+
+		// prompt to save their score
+		fmt.Println("remaining die", g.CurrentPlayer.Turn.RemainingDie)
+		if (g.CurrentPlayer.Score >= 650 || runningTally >= 650 || g.CurrentPlayer.Turn.Banked >= 650) && g.CurrentPlayer.Turn.RemainingDie > 0 {
+			fmt.Println("Do you want to [S]ave?")
+			if scanner.Scan() {
+				if strings.ToLower(scanner.Text()) == "s" {
+					g.CurrentPlayer.Save()
+					break
+				}
+			}
+		}
 	}
-	fmt.Printf(">> %d\n", die.Tally(diceRoll))
+
+	fmt.Printf("Player %s, your score is: %d\n", g.CurrentPlayer.Name, g.CurrentPlayer.Score)
 
 	g.EndTurn()
 	return
 }
 
+// Bank ...
+func (g *Game) Bank(dice []*die.Die) {
+	fmt.Println("Select which die to bank: ")
+	var bank string
+	fmt.Scanln(&bank)
+
+	var banked []*die.Die
+	for r := range bank {
+		if idx, err := strconv.Atoi(string(bank[r])); err == nil {
+			banked = append(banked, dice[idx])
+		}
+	}
+	err := g.CurrentPlayer.Turn.Bank(banked)
+	if err != nil {
+		return
+	}
+	fmt.Println("Banked score: ", g.CurrentPlayer.Turn.Banked)
+}
+
+// EndTurn ...
 func (g *Game) EndTurn() {
 	g.Players = append(g.Players, g.CurrentPlayer)
 	g.CurrentPlayer = &player.Player{}
