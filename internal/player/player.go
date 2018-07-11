@@ -3,7 +3,6 @@ package player
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
 	"os"
 	"sort"
 
@@ -32,14 +31,20 @@ func NewPlayer(num int) *Player {
 	player := &Player{}
 	player.Turn = &Turn{}
 
-	// if scanner.Scan() {
-	// 	player.Name = scanner.Text()
-	// }
+	if scanner.Scan() {
+		player.Name = scanner.Text()
+	}
 
-	_ = scanner
-	player.Name = string(letterBytes[rand.Int63()%int64(len(letterBytes))])
+	// _ = scanner
+	// player.Name = string(letterBytes[rand.Int63()%int64(len(letterBytes))])
 
 	return player
+}
+
+// Save the banked score and reset the turn
+func (p *Player) Save() {
+	p.Score += p.Turn.Banked
+	p.Turn.Reset()
 }
 
 // New turn
@@ -69,16 +74,7 @@ func (t *Turn) Bank(dice []*die.Die) error {
 	t.RemainingDie -= len(dice)
 	t.Banked += die.Tally(dice)
 
-	if t.RemainingDie == 0 {
-		t.RemainingDie = 5
-	}
 	return nil
-}
-
-// Save the banked score and reset the turn
-func (p *Player) Save() {
-	p.Score += p.Turn.Banked
-	p.Turn.Reset()
 }
 
 // Reset the turn

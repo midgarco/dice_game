@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -16,10 +17,15 @@ type Game struct {
 	Players       []*player.Player `json:"players"`
 	Dice          []*die.Die       `json:"dice"`
 	CurrentPlayer *player.Player   `json:"current_player"`
+	MaxScore      int
+	OpenScore     int
 }
 
 // Start the game
 func (g *Game) Start() {
+	if g.OpenScore == 0 {
+		g.OpenScore = 650
+	}
 	g.Dice = make([]*die.Die, 5)
 	for d := range g.Dice {
 		g.Dice[d] = die.NewSixSidedDie()
@@ -42,7 +48,12 @@ func (g *Game) NextTurn() {
 
 	g.CurrentPlayer.Turn.New()
 	for {
+		if g.CurrentPlayer.Turn.RemainingDie == 0 {
+			g.CurrentPlayer.Turn.RemainingDie = len(g.Dice)
+		}
+
 		diceRoll := g.CurrentPlayer.Turn.Roll(g.Dice[:g.CurrentPlayer.Turn.RemainingDie])
+		fmt.Printf("%s's Roll >> ", g.CurrentPlayer.Name)
 		for i := range diceRoll {
 			fmt.Printf("[%d]:%d ", i, diceRoll[i].Value)
 		}
@@ -53,15 +64,32 @@ func (g *Game) NextTurn() {
 			break // turn is over!
 		}
 
-		g.Bank(diceRoll)
+		// prompt to bank
+		fmt.Println("Select which die to bank: ")
+		var bank string
+		fmt.Scanln(&bank)
+		banked := g.Bank(diceRoll, bank)
+		err := g.CurrentPlayer.Turn.Bank(banked)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		fmt.Println("Banked score: ", g.CurrentPlayer.Turn.Banked)
 
 		// prompt to save their score
 		fmt.Println("remaining die", g.CurrentPlayer.Turn.RemainingDie)
-		if (g.CurrentPlayer.Score >= 650 || runningTally >= 650 || g.CurrentPlayer.Turn.Banked >= 650) && g.CurrentPlayer.Turn.RemainingDie > 0 {
+		if (g.CurrentPlayer.Score >= g.OpenScore || runningTally >= g.OpenScore || g.CurrentPlayer.Turn.Banked >= g.OpenScore) && g.CurrentPlayer.Turn.RemainingDie > 0 && g.CurrentPlayer.Turn.Banked > 0 {
 			fmt.Println("Do you want to [S]ave?")
 			if scanner.Scan() {
 				if strings.ToLower(scanner.Text()) == "s" {
 					g.CurrentPlayer.Save()
+
+					// winner winner, chicken dinner
+					if g.IsWinner(g.CurrentPlayer) {
+						g.End()
+						return
+					}
+
 					break
 				}
 			}
@@ -75,22 +103,14 @@ func (g *Game) NextTurn() {
 }
 
 // Bank ...
-func (g *Game) Bank(dice []*die.Die) {
-	fmt.Println("Select which die to bank: ")
-	var bank string
-	fmt.Scanln(&bank)
-
+func (g *Game) Bank(dice []*die.Die, bank string) []*die.Die {
 	var banked []*die.Die
-	for r := range bank {
-		if idx, err := strconv.Atoi(string(bank[r])); err == nil {
+	for _, x := range bank {
+		if idx, err := strconv.Atoi(string(x)); err == nil {
 			banked = append(banked, dice[idx])
 		}
 	}
-	err := g.CurrentPlayer.Turn.Bank(banked)
-	if err != nil {
-		return
-	}
-	fmt.Println("Banked score: ", g.CurrentPlayer.Turn.Banked)
+	return banked
 }
 
 // EndTurn ...
@@ -98,4 +118,27 @@ func (g *Game) EndTurn() {
 	g.Players = append(g.Players, g.CurrentPlayer)
 	g.CurrentPlayer = &player.Player{}
 	g.NextTurn()
+}
+
+// End the game
+func (g *Game) End() {
+	g.Players = append(g.Players, g.CurrentPlayer)
+	g.CurrentPlayer = &player.Player{}
+	fmt.Printf("\n\nGame Over!\n")
+	fmt.Printf("\n\nFinal Score\n")
+	sort.Slice(g.Players, func(a, b int) bool {
+		return g.Players[a].Score > g.Players[b].Score
+	})
+	for _, player := range g.Players {
+		fmt.Printf("%s: %d ", player.Name, player.Score)
+		if g.IsWinner(player) {
+			fmt.Print("**winner**")
+		}
+		fmt.Print("\n")
+	}
+}
+
+// IsWinner ...
+func (g Game) IsWinner(p *player.Player) bool {
+	return p.Score >= g.MaxScore
 }

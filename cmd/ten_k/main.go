@@ -15,20 +15,20 @@ import (
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	game := &game.Game{}
+	game := &game.Game{MaxScore: 10000, OpenScore: 650}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("How many players? \n")
 	var playerCount string
-	// if scanner.Scan() {
-	// 	playerCount = scanner.Text()
-	// }
-	// if scanner.Err() != nil {
-	// 	panic(scanner.Err())
-	// }
+	if scanner.Scan() {
+		playerCount = scanner.Text()
+	}
+	if scanner.Err() != nil {
+		panic(scanner.Err())
+	}
 
-	_ = scanner
-	playerCount = "2"
+	// _ = scanner
+	// playerCount = "2"
 
 	numPlayers, err := strconv.Atoi(playerCount)
 	if err != nil {

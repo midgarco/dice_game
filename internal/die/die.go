@@ -55,7 +55,7 @@ func Tally(dice []*Die) int {
 
 	// 3 of a kind
 	if len(dice) >= 3 && dice[0].Value == dice[1].Value && dice[1].Value == dice[2].Value {
-		scored = append(scored, dice[:2]...)
+		scored = append(scored, dice[:3]...)
 		remain = dice[3:]
 		if dice[0].Value == 1 {
 			total += 1000
@@ -63,19 +63,22 @@ func Tally(dice []*Die) int {
 			total += dice[0].Value * 100
 		}
 		dice = remain
+		remain = []*Die{}
 	} else if len(dice) >= 4 && dice[1].Value == dice[2].Value && dice[2].Value == dice[3].Value {
-		scored = append(scored, dice[1:3]...)
+		scored = append(scored, dice[1:4]...)
 		remain = append(remain, dice[0])
 		if len(dice) == 5 {
 			remain = append(remain, dice[4])
 		}
 		total += dice[1].Value * 100
 		dice = remain
+		remain = []*Die{}
 	} else if len(dice) == 5 && dice[2].Value == dice[3].Value && dice[3].Value == dice[4].Value {
-		scored = append(scored, dice[2:4]...)
+		scored = append(scored, dice[2:5]...)
 		remain = dice[:2]
 		total += dice[2].Value * 100
 		dice = remain
+		remain = []*Die{}
 	}
 
 	// all the rest

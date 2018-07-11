@@ -1,0 +1,13 @@
+// TODO
+
+Tasks:
+    Gameplay:
+        ✔ check for the winner @done(18-07-11 16:01)
+        ☐ configure server/client communication for multiplayer
+
+    Issues:
+        ✔ banking certain scores @critical @done(18-07-11 16:01)
+            [0]:1 [1]:2 [2]:5 [3]:5 [4]:5 >> 600 
+            Select which die to bank 
+            0234 
+            Banked score:  200
